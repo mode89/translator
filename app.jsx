@@ -218,7 +218,8 @@ const LANG = {
     title: "Translation Chat",
     welcomeTitle: "Welcome to Translation Chat",
     welcomeMessage:
-      "Type a message below to get started. Select your target language and start translating!",
+      "Type a message below to get started. " +
+      "Select your target language and start translating!",
     inputPlaceholder: "Type to translate...",
     send: "Send",
     menuAria: "Chat menu",

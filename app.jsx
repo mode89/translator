@@ -2,18 +2,18 @@ const { useState, useEffect, useRef } = React;
 
 function TranslationChat() {
   const [messages, setMessages] = useState([]);
-  const [inputText, setInputText] = useState('');
-  const [targetLanguage, setTargetLanguage] = useState('English');
+  const [inputText, setInputText] = useState("");
+  const [targetLanguage, setTargetLanguage] = useState("English");
   const messagesEndRef = useRef(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const menuButtonRef = useRef(null);
   const getInitialUiLanguage = () => {
     try {
-      const saved = localStorage.getItem('uiLanguage');
-      if (saved === 'en' || saved === 'zh-Hant') return saved;
+      const saved = localStorage.getItem("uiLanguage");
+      if (saved === "en" || saved === "zh-Hant") return saved;
     } catch (_) {}
-    return 'en';
+    return "en";
   };
   const [uiLanguage, setUiLanguage] = useState(getInitialUiLanguage);
 
@@ -27,7 +27,7 @@ function TranslationChat() {
   };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -36,7 +36,7 @@ function TranslationChat() {
 
   useEffect(() => {
     try {
-      localStorage.setItem('uiLanguage', uiLanguage);
+      localStorage.setItem("uiLanguage", uiLanguage);
     } catch (_) {}
   }, [uiLanguage]);
 
@@ -54,13 +54,13 @@ function TranslationChat() {
     };
     const handleKeydown = (e) => {
       if (!isMenuOpen) return;
-      if (e.key === 'Escape') setIsMenuOpen(false);
+      if (e.key === "Escape") setIsMenuOpen(false);
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleKeydown);
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeydown);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleKeydown);
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeydown);
     };
   }, [isMenuOpen]);
 
@@ -76,11 +76,11 @@ function TranslationChat() {
     const userMessage = {
       id: Date.now(),
       text: inputText,
-      type: 'user'
+      type: "user"
     };
 
     setMessages(prev => [...prev, userMessage]);
-    setInputText('');
+    setInputText("");
 
     // Simulate translation delay
     setTimeout(() => {
@@ -88,7 +88,7 @@ function TranslationChat() {
       const botMessage = {
         id: Date.now() + 1,
         text: translatedText,
-        type: 'bot'
+        type: "bot"
       };
       setMessages(prev => [...prev, botMessage]);
     }, 500);
@@ -122,11 +122,11 @@ function TranslationChat() {
               <button
                 className="chat-menu-item"
                 role="menuitemradio"
-                aria-checked={uiLanguage === 'en'}
-                onClick={() => { setUiLanguage('en'); setIsMenuOpen(false); }}>
+                aria-checked={uiLanguage === "en"}
+                onClick={() => { setUiLanguage("en"); setIsMenuOpen(false); }}>
                 <i
                   className="bi bi-check2 me-2"
-                  style={{ visibility: uiLanguage === 'en' ? 'visible' : 'hidden' }}
+                  style={{ visibility: uiLanguage === "en" ? "visible" : "hidden" }}
                   aria-hidden="true"
                 ></i>
                 {i18n.menu.english}
@@ -134,11 +134,11 @@ function TranslationChat() {
               <button
                 className="chat-menu-item"
                 role="menuitemradio"
-                aria-checked={uiLanguage === 'zh-Hant'}
-                onClick={() => { setUiLanguage('zh-Hant'); setIsMenuOpen(false); }}>
+                aria-checked={uiLanguage === "zh-Hant"}
+                onClick={() => { setUiLanguage("zh-Hant"); setIsMenuOpen(false); }}>
                 <i
                   className="bi bi-check2 me-2"
-                  style={{ visibility: uiLanguage === 'zh-Hant' ? 'visible' : 'hidden' }}
+                  style={{ visibility: uiLanguage === "zh-Hant" ? "visible" : "hidden" }}
                   aria-hidden="true"
                 ></i>
                 {i18n.menu.traditionalChinese}
@@ -148,13 +148,13 @@ function TranslationChat() {
               <button
                 className="chat-menu-item"
                 role="menuitem"
-                onClick={() => handleMenuItem('placeholder-1')}>
+                onClick={() => handleMenuItem("placeholder-1")}>
                   Placeholder 1
               </button>
               <button
                 className="chat-menu-item"
                 role="menuitem"
-                onClick={() => handleMenuItem('placeholder-2')}>
+                onClick={() => handleMenuItem("placeholder-2")}>
                   Placeholder 2
               </button>
             </div>
@@ -217,38 +217,38 @@ function TranslationChat() {
 
 // Global i18n map. Extend with more languages as needed.
 const UI_STRINGS = {
-  'en': {
-    title: 'Translation Chat',
-    welcomeTitle: 'Welcome to Translation Chat',
+  "en": {
+    title: "Translation Chat",
+    welcomeTitle: "Welcome to Translation Chat",
     welcomeMessage:
-      'Type a message below to get started. Select your target language and start translating!',
-    inputPlaceholder: 'Type to translate...',
-    send: 'Send',
-    menuAria: 'Chat menu',
-    openMenuAria: 'Open menu',
-    menuTitle: 'Menu',
+      "Type a message below to get started. Select your target language and start translating!",
+    inputPlaceholder: "Type to translate...",
+    send: "Send",
+    menuAria: "Chat menu",
+    openMenuAria: "Open menu",
+    menuTitle: "Menu",
     menu: {
-      uiLanguage: 'UI Language',
-      english: 'English',
-      traditionalChinese: '繁體中文',
+      uiLanguage: "UI Language",
+      english: "English",
+      traditionalChinese: "繁體中文",
     },
   },
-  'zh-Hant': {
-    title: '翻譯聊天',
-    welcomeTitle: '歡迎使用翻譯聊天',
-    welcomeMessage: '在下方輸入訊息即可開始。選擇目標語言並開始翻譯！',
-    inputPlaceholder: '輸入文字以翻譯…',
-    send: '送出',
-    menuAria: '聊天選單',
-    openMenuAria: '開啟選單',
-    menuTitle: '選單',
+  "zh-Hant": {
+    title: "翻譯聊天",
+    welcomeTitle: "歡迎使用翻譯聊天",
+    welcomeMessage: "在下方輸入訊息即可開始。選擇目標語言並開始翻譯！",
+    inputPlaceholder: "輸入文字以翻譯…",
+    send: "送出",
+    menuAria: "聊天選單",
+    openMenuAria: "開啟選單",
+    menuTitle: "選單",
     menu: {
-      uiLanguage: '介面語言',
-      english: 'English',
-      traditionalChinese: '繁體中文',
+      uiLanguage: "介面語言",
+      english: "English",
+      traditionalChinese: "繁體中文",
     },
   },
 };
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(<TranslationChat />);

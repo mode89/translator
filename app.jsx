@@ -147,21 +147,30 @@ function TranslationChat() {
               role="menu"
               aria-label={i18n.menuAria}
               ref={menuRef}>
+
               <div
                 className="px-2 pt-2 pb-1 text-muted small"
                 aria-hidden="true">
                 {i18n.menu.uiLanguage}
               </div>
+
               {languages.map(({ code, name }) => (
                 <button
                   key={code}
                   className="chat-menu-item"
                   role="menuitemradio"
                   aria-checked={uiLanguage === code}
-                  onClick={() => { setUiLanguage(code); setIsMenuOpen(false); }}>
+                  onClick={() => {
+                    setUiLanguage(code);
+                    setIsMenuOpen(false);
+                  }}>
                   <i
                     className="bi bi-check2 me-2"
-                    style={{ visibility: uiLanguage === code ? "visible" : "hidden" }}
+                    style={{
+                      visibility: uiLanguage === code
+                        ? "visible"
+                        : "hidden"
+                    }}
                     aria-hidden="true"></i>
                   {name}
                 </button>
@@ -174,12 +183,6 @@ function TranslationChat() {
                   {geminiApiKey
                     ? i18n.menu.updateGeminiApiKey
                     : i18n.menu.setGeminiApiKey}
-              </button>
-              <button
-                className="chat-menu-item"
-                role="menuitem"
-                onClick={() => handleMenuItem("placeholder-2")}>
-                  Placeholder 2
               </button>
             </div>
           )}

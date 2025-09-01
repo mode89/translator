@@ -3,12 +3,12 @@ const { useState, useEffect, useRef } = React;
 function TranslationChat() {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
-  const [targetLanguage, setTargetLanguage] = useState("English");
+  const [targetLanguage, setTargetLanguage] = useState("en");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [uiLanguage, setUiLanguage] = useState(() => {
     try {
       const saved = localStorage.getItem("uiLanguage");
-      if (saved === "en" || saved === "zh-Hant") return saved;
+      if (saved && LANG[saved]) return saved;
     } catch (_) {}
     return "en";
   });
@@ -67,7 +67,11 @@ function TranslationChat() {
     return `${text} (translated to ${language})`;
   };
 
-  const i18n = UI_STRINGS[uiLanguage];
+  const i18n = LANG[uiLanguage];
+  const languages = Object.entries(LANG).map(([code, data]) => ({
+    code,
+    name: data.languageName || code,
+  }));
 
   const handleSendMessage = () => {
     if (!inputText.trim()) return;
@@ -120,28 +124,20 @@ function TranslationChat() {
                 aria-hidden="true">
                 {i18n.menu.uiLanguage}
               </div>
-              <button
-                className="chat-menu-item"
-                role="menuitemradio"
-                aria-checked={uiLanguage === "en"}
-                onClick={() => { setUiLanguage("en"); setIsMenuOpen(false); }}>
-                <i
-                  className="bi bi-check2 me-2"
-                  style={{ visibility: uiLanguage === "en" ? "visible" : "hidden" }}
-                  aria-hidden="true"></i>
-                English
-              </button>
-              <button
-                className="chat-menu-item"
-                role="menuitemradio"
-                aria-checked={uiLanguage === "zh-Hant"}
-                onClick={() => { setUiLanguage("zh-Hant"); setIsMenuOpen(false); }}>
-                <i
-                  className="bi bi-check2 me-2"
-                  style={{ visibility: uiLanguage === "zh-Hant" ? "visible" : "hidden" }}
-                  aria-hidden="true" ></i>
-                繁體中文
-              </button>
+              {languages.map(({ code, name }) => (
+                <button
+                  key={code}
+                  className="chat-menu-item"
+                  role="menuitemradio"
+                  aria-checked={uiLanguage === code}
+                  onClick={() => { setUiLanguage(code); setIsMenuOpen(false); }}>
+                  <i
+                    className="bi bi-check2 me-2"
+                    style={{ visibility: uiLanguage === code ? "visible" : "hidden" }}
+                    aria-hidden="true"></i>
+                  {name}
+                </button>
+              ))}
 
               {/* Keep placeholders for future actions */}
               <button
@@ -194,8 +190,9 @@ function TranslationChat() {
                 className="form-select"
                 value={targetLanguage}
                 onChange={(e) => setTargetLanguage(e.target.value)}>
-                <option value="en">English</option>
-                <option value="zh-Hant">繁體中文</option>
+                {languages.map(({ code, name }) => (
+                  <option key={code} value={code}>{name}</option>
+                ))}
               </select>
             </div>
 
@@ -215,8 +212,9 @@ function TranslationChat() {
 }
 
 // Global i18n map. Extend with more languages as needed.
-const UI_STRINGS = {
+const LANG = {
   "en": {
+    languageName: "English",
     title: "Translation Chat",
     welcomeTitle: "Welcome to Translation Chat",
     welcomeMessage:
@@ -231,6 +229,7 @@ const UI_STRINGS = {
     },
   },
   "zh-Hant": {
+    languageName: "繁體中文",
     title: "翻譯聊天",
     welcomeTitle: "歡迎使用翻譯聊天",
     welcomeMessage: "在下方輸入訊息即可開始。選擇目標語言並開始翻譯！",

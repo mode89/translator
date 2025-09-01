@@ -8,6 +8,14 @@ function TranslationChat() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const menuButtonRef = useRef(null);
+  const getInitialUiLanguage = () => {
+    try {
+      const saved = localStorage.getItem('uiLanguage');
+      if (saved === 'en' || saved === 'zh-Hant') return saved;
+    } catch (_) {}
+    return 'en';
+  };
+  const [uiLanguage, setUiLanguage] = useState(getInitialUiLanguage);
 
   const handleMenuClick = () => {
     setIsMenuOpen(prev => !prev);
@@ -25,6 +33,12 @@ function TranslationChat() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('uiLanguage', uiLanguage);
+    } catch (_) {}
+  }, [uiLanguage]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -54,6 +68,8 @@ function TranslationChat() {
     return `${text} (translated to ${language})`;
   };
 
+  const i18n = UI_STRINGS[uiLanguage];
+
   const handleSendMessage = () => {
     if (!inputText.trim()) return;
 
@@ -82,15 +98,15 @@ function TranslationChat() {
     <div className="chat-container">
       <div className="card chat-card shadow">
         <div className="card-header bg-primary text-white text-center chat-header">
-          <h4 className="mb-0">Translation Chat</h4>
+          <h4 className="mb-0">{i18n.title}</h4>
           <button
             type="button"
             className="chat-menu-btn"
             aria-haspopup="true"
             aria-expanded={isMenuOpen}
-            aria-label="Open menu"
+            aria-label={i18n.openMenuAria}
             onClick={handleMenuClick}
-            title="Menu"
+            title={i18n.menuTitle}
             ref={menuButtonRef}>
             <i className="bi bi-list" aria-hidden="true"></i>
           </button>
@@ -98,8 +114,37 @@ function TranslationChat() {
             <div
               className="chat-menu"
               role="menu"
-              aria-label="Chat menu"
+              aria-label={i18n.menuAria}
               ref={menuRef}>
+              <div className="px-2 pt-2 pb-1 text-muted small" aria-hidden="true">
+                {i18n.menu.uiLanguage}
+              </div>
+              <button
+                className="chat-menu-item"
+                role="menuitemradio"
+                aria-checked={uiLanguage === 'en'}
+                onClick={() => { setUiLanguage('en'); setIsMenuOpen(false); }}>
+                <i
+                  className="bi bi-check2 me-2"
+                  style={{ visibility: uiLanguage === 'en' ? 'visible' : 'hidden' }}
+                  aria-hidden="true"
+                ></i>
+                {i18n.menu.english}
+              </button>
+              <button
+                className="chat-menu-item"
+                role="menuitemradio"
+                aria-checked={uiLanguage === 'zh-Hant'}
+                onClick={() => { setUiLanguage('zh-Hant'); setIsMenuOpen(false); }}>
+                <i
+                  className="bi bi-check2 me-2"
+                  style={{ visibility: uiLanguage === 'zh-Hant' ? 'visible' : 'hidden' }}
+                  aria-hidden="true"
+                ></i>
+                {i18n.menu.traditionalChinese}
+              </button>
+
+              {/* Keep placeholders for future actions */}
               <button
                 className="chat-menu-item"
                 role="menuitem"
@@ -112,12 +157,6 @@ function TranslationChat() {
                 onClick={() => handleMenuItem('placeholder-2')}>
                   Placeholder 2
               </button>
-              <button
-                className="chat-menu-item"
-                role="menuitem"
-                onClick={() => handleMenuItem('placeholder-3')}>
-                  Placeholder 3
-              </button>
             </div>
           )}
         </div>
@@ -125,11 +164,8 @@ function TranslationChat() {
         <div className="chat-messages">
           {messages.length === 0 ? (
             <div className="empty-state">
-              <h5>Welcome to Translation Chat</h5>
-              <p>
-                Type a message below to get started.
-                Select your target language and start translating!
-              </p>
+              <h5>{i18n.welcomeTitle}</h5>
+              <p>{i18n.welcomeMessage}</p>
             </div>
           ) : (
             messages.map((message) => (
@@ -147,7 +183,7 @@ function TranslationChat() {
           <div className="input-col">
             <textarea
               className="form-control"
-              placeholder="Type to translate..."
+              placeholder={i18n.inputPlaceholder}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               maxLength={500}/>
@@ -169,7 +205,7 @@ function TranslationChat() {
                 className="btn btn-primary"
                 onClick={handleSendMessage}
                 disabled={!inputText.trim()}>
-                Send
+                {i18n.send}
               </button>
             </div>
           </div>
@@ -178,6 +214,41 @@ function TranslationChat() {
     </div>
   );
 }
+
+// Global i18n map. Extend with more languages as needed.
+const UI_STRINGS = {
+  'en': {
+    title: 'Translation Chat',
+    welcomeTitle: 'Welcome to Translation Chat',
+    welcomeMessage:
+      'Type a message below to get started. Select your target language and start translating!',
+    inputPlaceholder: 'Type to translate...',
+    send: 'Send',
+    menuAria: 'Chat menu',
+    openMenuAria: 'Open menu',
+    menuTitle: 'Menu',
+    menu: {
+      uiLanguage: 'UI Language',
+      english: 'English',
+      traditionalChinese: '繁體中文',
+    },
+  },
+  'zh-Hant': {
+    title: '翻譯聊天',
+    welcomeTitle: '歡迎使用翻譯聊天',
+    welcomeMessage: '在下方輸入訊息即可開始。選擇目標語言並開始翻譯！',
+    inputPlaceholder: '輸入文字以翻譯…',
+    send: '送出',
+    menuAria: '聊天選單',
+    openMenuAria: '開啟選單',
+    menuTitle: '選單',
+    menu: {
+      uiLanguage: '介面語言',
+      english: 'English',
+      traditionalChinese: '繁體中文',
+    },
+  },
+};
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<TranslationChat />);

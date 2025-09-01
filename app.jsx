@@ -5,6 +5,13 @@ function TranslationChat() {
   const [inputText, setInputText] = useState("");
   const [targetLanguage, setTargetLanguage] = useState("en");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [geminiApiKey, setGeminiApiKey] = useState(() => {
+    try {
+      return localStorage.getItem("geminiApiKey") || "";
+    } catch (_) {
+      return "";
+    }
+  });
   const [uiLanguage, setUiLanguage] = useState(() => {
     try {
       const saved = localStorage.getItem("uiLanguage");
@@ -23,6 +30,27 @@ function TranslationChat() {
   const handleMenuItem = (key) => {
     console.log(`Menu item clicked: ${key}`);
     setIsMenuOpen(false);
+  };
+
+  const handleSetGeminiKey = () => {
+    const input = window.prompt(i18n.menu.setGeminiApiKeyPrompt, "");
+    if (input === null) return; // cancelled
+    const trimmed = input.trim();
+    try {
+      if (trimmed) {
+        localStorage.setItem("geminiApiKey", trimmed);
+        setGeminiApiKey(trimmed);
+        alert(i18n.menu.savedGeminiApiKey);
+      } else {
+        localStorage.removeItem("geminiApiKey");
+        setGeminiApiKey("");
+        alert(i18n.menu.clearedGeminiApiKey);
+      }
+    } catch (e) {
+      console.error("Failed to persist API key", e);
+    } finally {
+      setIsMenuOpen(false);
+    }
   };
 
   const scrollToBottom = () => {
@@ -139,12 +167,13 @@ function TranslationChat() {
                 </button>
               ))}
 
-              {/* Keep placeholders for future actions */}
               <button
                 className="chat-menu-item"
                 role="menuitem"
-                onClick={() => handleMenuItem("placeholder-1")}>
-                  Placeholder 1
+                onClick={handleSetGeminiKey}>
+                  {geminiApiKey
+                    ? i18n.menu.updateGeminiApiKey
+                    : i18n.menu.setGeminiApiKey}
               </button>
               <button
                 className="chat-menu-item"
@@ -227,6 +256,13 @@ const LANG = {
     menuTitle: "Menu",
     menu: {
       uiLanguage: "UI Language",
+      setGeminiApiKey: "Set Gemini API Key",
+      updateGeminiApiKey: "Update Gemini API Key",
+      setGeminiApiKeyPrompt:
+        "Enter your Gemini API key. " +
+        "It will be stored locally in this browser.",
+      savedGeminiApiKey: "Gemini API key saved.",
+      clearedGeminiApiKey: "Gemini API key cleared.",
     },
   },
   "zh-Hant": {
@@ -241,6 +277,12 @@ const LANG = {
     menuTitle: "選單",
     menu: {
       uiLanguage: "介面語言",
+      setGeminiApiKey: "設定 Gemini API 金鑰",
+      updateGeminiApiKey: "更新 Gemini API 金鑰",
+      setGeminiApiKeyPrompt:
+        "輸入你的 Gemini API 金鑰。將儲存在此瀏覽器中。",
+      savedGeminiApiKey: "已儲存 Gemini API 金鑰。",
+      clearedGeminiApiKey: "已清除 Gemini API 金鑰。",
     },
   },
 };

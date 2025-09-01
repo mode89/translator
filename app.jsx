@@ -4,18 +4,17 @@ function TranslationChat() {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
   const [targetLanguage, setTargetLanguage] = useState("English");
-  const messagesEndRef = useRef(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menuRef = useRef(null);
-  const menuButtonRef = useRef(null);
-  const getInitialUiLanguage = () => {
+  const [uiLanguage, setUiLanguage] = useState(() => {
     try {
       const saved = localStorage.getItem("uiLanguage");
       if (saved === "en" || saved === "zh-Hant") return saved;
     } catch (_) {}
     return "en";
-  };
-  const [uiLanguage, setUiLanguage] = useState(getInitialUiLanguage);
+  });
+  const messagesEndRef = useRef(null);
+  const menuRef = useRef(null);
+  const menuButtonRef = useRef(null);
 
   const handleMenuClick = () => {
     setIsMenuOpen(prev => !prev);
@@ -116,7 +115,9 @@ function TranslationChat() {
               role="menu"
               aria-label={i18n.menuAria}
               ref={menuRef}>
-              <div className="px-2 pt-2 pb-1 text-muted small" aria-hidden="true">
+              <div
+                className="px-2 pt-2 pb-1 text-muted small"
+                aria-hidden="true">
                 {i18n.menu.uiLanguage}
               </div>
               <button
@@ -127,9 +128,8 @@ function TranslationChat() {
                 <i
                   className="bi bi-check2 me-2"
                   style={{ visibility: uiLanguage === "en" ? "visible" : "hidden" }}
-                  aria-hidden="true"
-                ></i>
-                {i18n.menu.english}
+                  aria-hidden="true"></i>
+                English
               </button>
               <button
                 className="chat-menu-item"
@@ -139,9 +139,8 @@ function TranslationChat() {
                 <i
                   className="bi bi-check2 me-2"
                   style={{ visibility: uiLanguage === "zh-Hant" ? "visible" : "hidden" }}
-                  aria-hidden="true"
-                ></i>
-                {i18n.menu.traditionalChinese}
+                  aria-hidden="true" ></i>
+                繁體中文
               </button>
 
               {/* Keep placeholders for future actions */}
@@ -195,8 +194,8 @@ function TranslationChat() {
                 className="form-select"
                 value={targetLanguage}
                 onChange={(e) => setTargetLanguage(e.target.value)}>
-                <option value="English">EN</option>
-                <option value="Traditional Chinese">中文</option>
+                <option value="en">English</option>
+                <option value="zh-Hant">繁體中文</option>
               </select>
             </div>
 
@@ -229,8 +228,6 @@ const UI_STRINGS = {
     menuTitle: "Menu",
     menu: {
       uiLanguage: "UI Language",
-      english: "English",
-      traditionalChinese: "繁體中文",
     },
   },
   "zh-Hant": {
@@ -244,8 +241,6 @@ const UI_STRINGS = {
     menuTitle: "選單",
     menu: {
       uiLanguage: "介面語言",
-      english: "English",
-      traditionalChinese: "繁體中文",
     },
   },
 };

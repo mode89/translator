@@ -5,6 +5,18 @@ function TranslationChat() {
   const [inputText, setInputText] = useState('');
   const [targetLanguage, setTargetLanguage] = useState('English');
   const messagesEndRef = useRef(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+  const menuButtonRef = useRef(null);
+
+  const handleMenuClick = () => {
+    setIsMenuOpen(prev => !prev);
+  };
+
+  const handleMenuItem = (key) => {
+    console.log(`Menu item clicked: ${key}`);
+    setIsMenuOpen(false);
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -13,6 +25,30 @@ function TranslationChat() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!isMenuOpen) return;
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(e.target) &&
+        menuButtonRef.current &&
+        !menuButtonRef.current.contains(e.target)
+      ) {
+        setIsMenuOpen(false);
+      }
+    };
+    const handleKeydown = (e) => {
+      if (!isMenuOpen) return;
+      if (e.key === 'Escape') setIsMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeydown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeydown);
+    };
+  }, [isMenuOpen]);
 
   const mockTranslate = (text, language) => {
     return `${text} (translated to ${language})`;
@@ -47,6 +83,43 @@ function TranslationChat() {
       <div className="card chat-card shadow">
         <div className="card-header bg-primary text-white text-center chat-header">
           <h4 className="mb-0">Translation Chat</h4>
+          <button
+            type="button"
+            className="chat-menu-btn"
+            aria-haspopup="true"
+            aria-expanded={isMenuOpen}
+            aria-label="Open menu"
+            onClick={handleMenuClick}
+            title="Menu"
+            ref={menuButtonRef}>
+            <i className="bi bi-list" aria-hidden="true"></i>
+          </button>
+          {isMenuOpen && (
+            <div
+              className="chat-menu"
+              role="menu"
+              aria-label="Chat menu"
+              ref={menuRef}>
+              <button
+                className="chat-menu-item"
+                role="menuitem"
+                onClick={() => handleMenuItem('placeholder-1')}>
+                  Placeholder 1
+              </button>
+              <button
+                className="chat-menu-item"
+                role="menuitem"
+                onClick={() => handleMenuItem('placeholder-2')}>
+                  Placeholder 2
+              </button>
+              <button
+                className="chat-menu-item"
+                role="menuitem"
+                onClick={() => handleMenuItem('placeholder-3')}>
+                  Placeholder 3
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="chat-messages">
@@ -77,8 +150,7 @@ function TranslationChat() {
               placeholder="Type to translate..."
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              maxLength={500}
-            />
+              maxLength={500}/>
           </div>
 
           <div className="d-flex justify-content-between align-items-center mt-2 controls-row">

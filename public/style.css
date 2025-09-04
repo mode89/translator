@@ -1,12 +1,5 @@
-body {
-  background-color: #f8f9fa;
-  height: 100vh;
-  margin: 0;
-  padding: 0;
-}
-
 .chat-container {
-  height: 100vh;
+  height: 100dvh;
   padding: 0;
 }
 
@@ -115,7 +108,7 @@ body {
   font-size: 1.1rem;
 }
 
-.chat-menu-btn {
+.main-menu-btn {
   position: absolute;
   top: 50%;
   right: 0.75rem;
@@ -129,30 +122,39 @@ body {
   cursor: pointer;
 }
 
-.chat-menu-btn:hover { opacity: 0.9; }
-.chat-menu-btn:active { opacity: 0.85; }
+.main-menu-btn:hover { opacity: 0.9; }
+.main-menu-btn:active { opacity: 0.85; }
 
-.chat-menu-btn .bi {
+.main-menu-btn .bi {
   font-size: 2rem;
   display: inline-block;
 }
 
-.chat-menu {
-  position: absolute;
-  right: 1rem;
-  left: 1rem;
-  top: calc(100% - 0.25rem);
+.main-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001;
+}
+
+.main-menu-content {
   background: #ffffff;
   color: #212529;
   border: 1px solid rgba(0, 0, 0, 0.08);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.12);
   border-radius: 0.5rem;
-  min-width: 180px;
+  max-width: 400px;
+  width: 90%;
   padding: 0.25rem;
-  z-index: 1000;
 }
 
-.chat-menu-item {
+.main-menu-item {
   width: 100%;
   text-align: left;
   background: transparent;
@@ -164,7 +166,7 @@ body {
   font-size: 0.95rem;
 }
 
-.chat-menu-item:hover {
+.main-menu-item:hover {
   background: #f1f3f5;
 }
 

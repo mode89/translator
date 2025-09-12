@@ -26,6 +26,7 @@
 (declare set-gemini-key!)
 (declare post-message!)
 (declare translate!)
+(declare detect-language!)
 (declare scroll-to-bottom!)
 (declare gemini-request)
 
@@ -147,19 +148,50 @@
                             :text (:text response)})
       (js/setTimeout scroll-to-bottom! 50))))
 
-(defn translate! [text handler]
+(defn language-detection-schema []
+  {:type "object"
+   :properties {:language {:type "string"
+                           :enum (cons "other" (map name (keys LANG)))
+                           :description "The detected language code"}}
+   :required ["language"]})
+
+(defn detect-language! [text handler]
   (gemini-request
     {:model "gemini-2.5-flash-lite"
      :key @gemini-api-key
-     :system (str "You are a helpful assistant that translates text. "
-                  "Only provide the translated text, without any "
-                  "additional commentary.")}
+     :system (str "You are a language detection assistant. "
+                  "Detect the language of the given text and respond with "
+                  "the appropriate language code.")
+     :response-schema (language-detection-schema)}
     [{:role :user
-      :text (str "Translate the following text into "
-                 (get-in LANG [@target-language :english-name])":\n\n"
-                 text)}]
-    (fn [response]
-      (handler {:text (:text response)}))))
+      :text (str "Detect the language of this text: " text)}]
+    #(handler (keyword (:language %)))))
+
+(defn translate! [text handler]
+  (detect-language! text
+    (fn [detected-lang]
+      (let [target-lang @target-language
+            ui-lang @ui-language
+            final-target-lang (if (= detected-lang target-lang)
+                                ui-lang
+                                target-lang)]
+        (println
+          (str "Language detection result:"
+               " detected=" (name detected-lang)
+               " target=" (name target-lang)
+               " ui=" (name ui-lang)
+               " final-target=" (name final-target-lang)))
+        (gemini-request
+          {:model "gemini-2.5-flash-lite"
+           :key @gemini-api-key
+           :system (str "You are a helpful assistant that translates text. "
+                        "Only provide the translated text, without any "
+                        "additional commentary.")}
+          [{:role :user
+            :text (str "Translate the following text into "
+                       (get-in LANG [final-target-lang :english-name]) ":\n\n"
+                       text)}]
+          #(handler {:text (:text %)}))))))
 
 (defn scroll-to-bottom! []
   (let [el (js/document.getElementById "chat-messages")]
@@ -173,25 +205,40 @@
   (POST (str "https://generativelanguage.googleapis.com/v1beta/models/"
              (:model opts)
              ":generateContent")
-    (let [body (merge
-                 (when-some [sys (:system opts)]
-                   (println "System instruction:" sys)
-                   {:system_instruction {:parts [{:text sys}]}})
+    (let [structured? (contains? opts :response-schema)
+          body (merge
                  {:contents (for [msg messages]
                               (do (assert (some? (:role msg)))
                                  {:role (name (:role msg))
-                                  :parts [{:text (:text msg)}]}))})]
-      (println "Gemini request:" (pr-str messages))
+                                  :parts [{:text (:text msg)}]}))}
+                 (when-some [sys (:system opts)]
+                   (println "System instruction:" sys)
+                   {:system_instruction {:parts [{:text sys}]}})
+                 (when structured?
+                   {:generationConfig
+                    {:responseMimeType "application/json"
+                     :responseSchema (:response-schema opts)}}))]
+      (println
+        (if structured?
+          "Gemini structured request:"
+          "Gemini request:")
+        (pr-str messages))
       {:headers {"x-goog-api-key" (:key opts)
                  "Content-Type" "application/json"}
        :body (js/JSON.stringify (clj->js body))
        :response-format :json
        :keywords? true
-       :handler #(handler
-                   {:text (get-in % [:candidates 0
-                                     :content
-                                     :parts 0
-                                     :text])})})))
+       :handler (if structured?
+                  #(-> %
+                       (get-in [:candidates 0 :content :parts 0 :text])
+                       js/JSON.parse
+                       (js->clj :keywordize-keys true)
+                       handler)
+                  #(handler
+                     {:text (get-in % [:candidates 0
+                                       :content
+                                       :parts 0
+                                       :text])}))})))
 
 (def LANG
   {:en

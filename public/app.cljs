@@ -97,7 +97,7 @@
                                   (seq (clojure.string/trim @input-text)))
                          (.preventDefault e)
                          (post-message! @input-text)))
-        :maxLength 500}]]
+        :maxLength 2000}]]
      [:div.d-flex.justify-content-between.align-items-center.mt-2.controls-row
       [:div.language-select-col
        [:select.form-select

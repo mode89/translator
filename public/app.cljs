@@ -25,6 +25,7 @@
 (declare LANG)
 (declare set-gemini-key!)
 (declare post-message!)
+(declare translate!)
 (declare scroll-to-bottom!)
 (declare gemini-request)
 
@@ -73,7 +74,7 @@
            {:style {:visibility (if (= @ui-language code)
                                   "visible"
                                   "hidden")}}]
-          (:lang-name lang)])
+          (:native-name lang)])
        [:button.main-menu-item
         {:role "menuitem"
          :on-click #(do (set-gemini-key! lang)
@@ -105,7 +106,7 @@
                        (store! "target-language" code)
                        (reset! target-language (keyword code)))}
         (for [[code lang] LANG]
-          ^{:key code} [:option {:value (name code)} (:lang-name lang)])]]
+          ^{:key code} [:option {:value (name code)} (:native-name lang)])]]
       [:div.send-col.ms-2
        [:button.btn.btn-primary
         {:on-click #(post-message! @input-text)
@@ -139,21 +140,26 @@
                         :text text})
   (js/setTimeout scroll-to-bottom! 50)
   (reset! input-text "")
+  (translate! text
+    (fn [response]
+      (swap! messages conj {:id (inc (.now js/Date))
+                            :type :bot
+                            :text (:text response)})
+      (js/setTimeout scroll-to-bottom! 50))))
+
+(defn translate! [text handler]
   (gemini-request
-   {:model "gemini-2.5-flash-lite"
-    :key @gemini-api-key}
-   [{:role :user
-     :text (str "Translate the following text to "
-                (get-in LANG [@target-language :lang-name]) ". "
-                "Only provide the translated text, "
-                "without any additional commentary. "
-                "\n\nHere is the text to translate:\n\n"
-                text)}]
-   (fn [response]
-     (swap! messages conj {:id (inc (.now js/Date))
-                           :type :bot
-                           :text (:text response)})
-     (js/setTimeout scroll-to-bottom! 50))))
+    {:model "gemini-2.5-flash-lite"
+     :key @gemini-api-key
+     :system (str "You are a helpful assistant that translates text. "
+                  "Only provide the translated text, without any "
+                  "additional commentary.")}
+    [{:role :user
+      :text (str "Translate the following text into "
+                 (get-in LANG [@target-language :english-name])":\n\n"
+                 text)}]
+    (fn [response]
+      (handler {:text (:text response)}))))
 
 (defn scroll-to-bottom! []
   (let [el (js/document.getElementById "chat-messages")]
@@ -167,10 +173,15 @@
   (POST (str "https://generativelanguage.googleapis.com/v1beta/models/"
              (:model opts)
              ":generateContent")
-    (let [body {:contents (for [msg messages]
-                            (do (assert (some? (:role msg)))
-                                {:role (name (:role msg))
-                                 :parts [{:text (:text msg)}]}))}]
+    (let [body (merge
+                 (when-some [sys (:system opts)]
+                   (println "System instruction:" sys)
+                   {:system_instruction {:parts [{:text sys}]}})
+                 {:contents (for [msg messages]
+                              (do (assert (some? (:role msg)))
+                                 {:role (name (:role msg))
+                                  :parts [{:text (:text msg)}]}))})]
+      (println "Gemini request:" (pr-str messages))
       {:headers {"x-goog-api-key" (:key opts)
                  "Content-Type" "application/json"}
        :body (js/JSON.stringify (clj->js body))
@@ -184,7 +195,8 @@
 
 (def LANG
   {:en
-   {:lang-name "English"
+   {:english-name "English"
+    :native-name "English"
     :welcome-title "Welcome to Xlaton"
     :welcome-message (str "Type a message below to get started. Select "
                           "your target language and start translating!")
@@ -202,7 +214,8 @@
            :gemini-key-cleared "Gemini API key cleared."}}
 
    :zh-Hant
-   {:lang-name "繁體中文"
+   {:english-name "Traditional Chinese"
+    :native-name "繁體中文"
     :welcome-title "歡迎使用 Xlaton"
     :welcome-message "在下方輸入訊息即可開始。選擇目標語言並開始翻譯！"
     :input-placeholder "輸入文字以翻譯…"

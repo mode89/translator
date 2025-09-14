@@ -28,6 +28,7 @@
 (declare translate!)
 (declare detect-language!)
 (declare scroll-to-bottom!)
+(declare copy-to-clipboard!)
 (declare gemini-request)
 
 (defn chat-header []
@@ -54,7 +55,12 @@
        (for [{:keys [id text type]} msgs]
          ^{:key id}
          [:div.message {:class (name type)}
-          [:div.message-bubble text]]))]))
+          [:div.message-bubble
+           [:div.message-text text]
+           (when (= type :bot)
+             [:i.bi.bi-copy.copy-icon
+              {:role "button"
+               :on-click #(copy-to-clipboard! text)}])]]))]))
 
 (defn menu []
   (let [lang (LANG @ui-language)]
@@ -197,6 +203,13 @@
   (let [el (js/document.getElementById "chat-messages")]
     (when el
       (set! (.-scrollTop el) (.-scrollHeight el)))))
+
+(defn copy-to-clipboard! [text]
+  (when (string? text)
+    (-> js/navigator
+        .-clipboard
+        (.writeText text)
+        (.then #(js/console.log (str "Copied to clipboard: `" text "`"))))))
 
 (defn gemini-request [opts messages handler]
   (assert (contains? opts :model))

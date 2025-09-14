@@ -41,6 +41,13 @@
   line-height: 1.3;
 }
 
+.message-bubble .copy-icon {
+  font-size: 0.95rem;
+  color: #6c757d;
+  background: transparent;
+  float: right;
+}
+
 .message.user .message-bubble {
   background-color: #007bff;
   color: white;

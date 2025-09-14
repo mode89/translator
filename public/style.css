@@ -23,17 +23,9 @@
   margin-bottom: 0.75rem;
 }
 
-.message.user {
-  text-align: right;
-}
-
-.message.bot {
-  text-align: left;
-}
-
 .message-bubble {
   display: inline-block;
-  max-width: 85%;
+  width: 100%;
   padding: 0.75rem;
   border-radius: 1.125rem;
   word-wrap: break-word;
@@ -235,7 +227,7 @@
   }
 
   .message-bubble {
-    max-width: 70%;
+    width: 100%;
     font-size: 1rem;
     padding: 0.875rem 1.125rem;
   }
@@ -266,6 +258,6 @@
   }
 
   .message-bubble {
-    max-width: 60%;
+    width: 100%;
   }
 }

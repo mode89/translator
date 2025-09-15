@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+SCRIPT_DIR=$(cd $(dirname $0); pwd)
+REPO_DIR=$(cd ${SCRIPT_DIR}/..; pwd)
+PUBLIC_DIR=${REPO_DIR}/public
+BUILD_DIR=${REPO_DIR}/.build
+DIST_DIR=${BUILD_DIR}/dist
+
+echo "Cleaning up previous build ..."
+rm -rf ${BUILD_DIR}
+mkdir -p ${DIST_DIR}
+
+echo "Copying public files to dist ..."
+cp -r ${PUBLIC_DIR}/* ${DIST_DIR}/
+
+echo "Patching version info ..."
+DATE=$(git log -1 --pretty=format:%cd --date=format:%Y-%m-%d)
+HASH=$(git rev-parse --short HEAD)
+VERSION="${DATE}-${HASH}"
+if [ -n "$(git status --porcelain)" ]; then
+  VERSION="${VERSION}-dirty"
+fi
+sed -i "s/{{VERSION}}/${VERSION}/g" "${DIST_DIR}/app.cljs"

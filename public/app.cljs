@@ -3,6 +3,8 @@
             [reagent.core :as r]
             [reagent.dom :as rdom]))
 
+(def VERSION "{{VERSION}}")
+
 (defn load!
   ([name]
    (load! name nil))
@@ -88,7 +90,8 @@
                         (reset! menu-open? false))}
         (if (seq @gemini-api-key)
           (get-in lang [:menu :update-gemini-key])
-          (get-in lang [:menu :set-gemini-key]))]]]]))
+          (get-in lang [:menu :set-gemini-key]))]
+       [:div.px-2.pt-2.pb-1.text-muted.small (str "Version " VERSION)]]]]))
 
 (defn chat-input []
   (let [lang (LANG @ui-language)]

@@ -209,10 +209,18 @@
 
 (defn copy-to-clipboard! [text]
   (when (string? text)
-    (-> js/navigator
-        .-clipboard
-        (.writeText text)
-        (.then #(js/console.log (str "Copied to clipboard: `" text "`"))))))
+    (if (and (.-clipboard js/navigator)
+             (.-writeText (.-clipboard js/navigator)))
+      (-> (.writeText (.-clipboard js/navigator) text)
+          (.then #(js/console.log (str "Copied to clipboard: `" text "`"))))
+      (let [textarea (js/document.createElement "textarea")]
+        (set! (.-value textarea) text)
+        (set! (.-style.display textarea) "none")
+        (.appendChild js/document.body textarea)
+        (.select textarea)
+        (js/document.execCommand "copy")
+        (.removeChild js/document.body textarea)
+        (js/console.log (str "Copied to clipboard: `" text "`"))))))
 
 (defn gemini-request [opts messages handler]
   (assert (contains? opts :model))

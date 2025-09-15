@@ -174,10 +174,10 @@
      :system (str "You are a language detection assistant. "
                   "Detect the language of the given text and respond with "
                   "the appropriate language code.")
-     :response-schema (language-detection-schema)}
+     :response-schema (language-detection-schema)
+     :on-success #(handler (keyword (:language %)))}
     [{:role :user
-      :text (str "Detect the language of this text: " text)}]
-    #(handler (keyword (:language %)))))
+      :text (str "Detect the language of this text: " text)}]))
 
 (defn translate! [text handler]
   (detect-language! text
@@ -198,12 +198,12 @@
            :key @gemini-api-key
            :system (str "You are a helpful assistant that translates text. "
                         "Only provide the translated text, without any "
-                        "additional commentary.")}
+                        "additional commentary.")
+           :on-success #(handler {:text (:text %)})}
           [{:role :user
             :text (str "Translate the following text into "
                        (get-in LANG [final-target-lang :english-name]) ":\n\n"
-                       text)}]
-          #(handler {:text (:text %)}))))))
+                       text)}])))))
 
 (defn scroll-to-bottom! []
   (let [el (js/document.getElementById "chat-messages")]
@@ -225,31 +225,32 @@
         (.removeChild js/document.body textarea)
         (js/console.log (str "Copied to clipboard: `" text "`"))))))
 
-(defn gemini-request [opts messages handler]
+(defn gemini-request [opts messages]
   (assert (contains? opts :model))
   (assert (contains? opts :key))
-  (assert (fn? handler))
-  (POST (str "https://generativelanguage.googleapis.com/v1beta/models/"
-             (:model opts)
-             ":generateContent")
-    (let [structured? (contains? opts :response-schema)
-          body (merge
-                 {:contents (for [msg messages]
-                              (do (assert (some? (:role msg)))
-                                 {:role (name (:role msg))
-                                  :parts [{:text (:text msg)}]}))}
-                 (when-some [sys (:system opts)]
-                   (println "System instruction:" sys)
-                   {:system_instruction {:parts [{:text sys}]}})
-                 (when structured?
-                   {:generationConfig
-                    {:responseMimeType "application/json"
-                     :responseSchema (:response-schema opts)}}))]
-      (println
-        (if structured?
-          "Gemini structured request:"
-          "Gemini request:")
-        (pr-str messages))
+  (let [on-success (:on-success opts)
+        structured? (contains? opts :response-schema)
+        body (merge
+               {:contents (for [msg messages]
+                            (do (assert (some? (:role msg)))
+                               {:role (name (:role msg))
+                                :parts [{:text (:text msg)}]}))}
+               (when-some [sys (:system opts)]
+                 (println "System instruction:" sys)
+                 {:system_instruction {:parts [{:text sys}]}})
+               (when structured?
+                 {:generationConfig
+                  {:responseMimeType "application/json"
+                   :responseSchema (:response-schema opts)}}))]
+    (assert (fn? on-success))
+    (println
+      (if structured?
+        "Gemini structured request:"
+        "Gemini request:")
+      (pr-str messages))
+    (POST (str "https://generativelanguage.googleapis.com/v1beta/models/"
+               (:model opts)
+               ":generateContent")
       {:headers {"x-goog-api-key" (:key opts)
                  "Content-Type" "application/json"}
        :body (js/JSON.stringify (clj->js body))
@@ -260,8 +261,8 @@
                        (get-in [:candidates 0 :content :parts 0 :text])
                        js/JSON.parse
                        (js->clj :keywordize-keys true)
-                       handler)
-                  #(handler
+                       on-success)
+                  #(on-success
                      {:text (get-in % [:candidates 0
                                        :content
                                        :parts 0

@@ -145,17 +145,20 @@
 
 (defn post-message! [text]
   (assert (keyword? @target-language))
-  (swap! messages conj {:id (.now js/Date)
-                        :type :user
-                        :text text})
-  (js/setTimeout scroll-to-bottom! 50)
-  (reset! input-text "")
-  (translate! text
-    (fn [response]
-      (swap! messages conj {:id (inc (.now js/Date))
-                            :type :bot
-                            :text (:text response)})
-      (js/setTimeout scroll-to-bottom! 50))))
+  (if (empty? @gemini-api-key)
+    (js/alert (:gemini-key-missing (LANG @ui-language)))
+    (do
+      (swap! messages conj {:id (.now js/Date)
+                            :type :user
+                            :text text})
+      (js/setTimeout scroll-to-bottom! 50)
+      (reset! input-text "")
+      (translate! text
+        (fn [response]
+          (swap! messages conj {:id (inc (.now js/Date))
+                                :type :bot
+                                :text (:text response)})
+          (js/setTimeout scroll-to-bottom! 50))))))
 
 (defn language-detection-schema []
   {:type "object"
@@ -273,6 +276,7 @@
                           "your target language and start translating!")
     :input-placeholder "Type to translate..."
     :send "Send"
+    :gemini-key-missing "Please set your Gemini API key first."
     :menu {:title "Menu"
            :aria "Chat menu"
            :open-aria "Open menu"
@@ -291,6 +295,7 @@
     :welcome-message "在下方輸入訊息即可開始。選擇目標語言並開始翻譯！"
     :input-placeholder "輸入文字以翻譯…"
     :send "送出"
+    :gemini-key-missing "請先設定您的 Gemini API 金鑰。"
     :menu {:title "選單"
            :aria "聊天選單"
            :open-aria "開啟選單"
